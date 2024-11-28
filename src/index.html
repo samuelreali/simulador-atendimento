@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulador de Atendimento</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        #log {
+            margin-top: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid #ccc;
+            padding: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simulador de Atendimento</h1>
+    <button id="start-simulation">Iniciar Simulação</button>
+    <div id="log"></div>
+
+    <script>
+        $(document).ready(function () {
+            const log = $("#log");
+
+            // Função para carregar tempos de serviço e chegada via AJAX
+            function carregarDados() {
+                return $.ajax({
+                    url: "simulador.php",
+                    method: "GET",
+                    dataType: "json",
+                    success: function (data) {
+                        if (data.error) {
+                            alert("Erro: " + data.error);
+                        }
+                    },
+                    error: function () {
+                        alert("Erro ao carregar os dados.");
+                    }
+                });
+            }
+
+            // Função para simular o processo de atendimento
+            function simularAtendimento(temposServico, temposChegada) {
+                log.empty(); // Limpa o log
+                let tempoAtual = 0; // Tempo simulado
+
+                // Simula o atendimento com os dados fornecidos
+                temposChegada.forEach((tempoChegada, index) => {
+                    setTimeout(() => {
+                        const tempoServico = temposServico[Math.floor(Math.random() * temposServico.length)];
+                        tempoAtual += tempoServico;
+
+                        log.append(
+                            `<p>Chamado #${index + 1}: Chegada em ${tempoChegada}s, atendimento iniciado em ${tempoAtual - tempoServico}s, finalizado em ${tempoAtual}s.</p>`
+                        );
+                        log.scrollTop(log[0].scrollHeight); // Rolagem automática para o final
+                    }, tempoChegada * 1000); // Multiplica pelo intervalo de tempo para simular
+                });
+            }
+
+            // Iniciar a simulação ao clicar no botão
+            $("#start-simulation").on("click", function () {
+                carregarDados().then(function (dados) {
+                    if (dados.temposServico && dados.temposChegada) {
+                        simularAtendimento(dados.temposServico, dados.temposChegada);
+                    } else {
+                        alert("Não foi possível carregar os dados.");
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
