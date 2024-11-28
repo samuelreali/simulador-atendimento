@@ -1,18 +1,35 @@
 $(document).ready(function () {
     $("#simular").click(function () {
-        /* alert() */
         $.getJSON("api/simulador.php", function (data) {
-            console.log(data)
-            let html = "<h3>Resultados da Simulação</h3><ul class='list-group'>";
+            console.log(data);
+
+            // Criar a tabela HTML com as colunas desejadas
+            let html = "<h3>Resultados da Simulação</h3><table class='table table-bordered'>";
+            html += `
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Chegada</th>
+                        <th>Atendimento Concluído</th>
+                    </tr>
+                </thead>
+                <tbody>
+            `;
+
+            // Adicionar uma linha por cliente na tabela
             data.fila.forEach((item, index) => {
                 html += `
-                    <li class="list-group-item">
-                        <strong>Chegada:</strong> ${item} | 
-                        <strong>Atendimento Concluído:</strong> ${data.atendimentos[index]}
-                    </li>
+                    <tr>
+                        <td>#${index + 1}</td>
+                        <td>${item}</td>
+                        <td>${data.atendimentos[index]}</td>
+                    </tr>
                 `;
             });
-            html += "</ul>";
+
+            html += "</tbody></table>";
+
+            // Inserir o HTML gerado no elemento com o id "resultados"
             $("#resultados").html(html);
         });
     });
