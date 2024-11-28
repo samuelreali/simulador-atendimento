@@ -6,33 +6,48 @@ function lerArquivo($arquivo) {
 }
 
 // Ler os arquivos de entrada
-$tc = lerArquivo('../data/tc.txt'); // Tempos de chegada
+$tc = lerArquivo('../data/tc.txt'); // Intervalos de tempo entre as chegadas
 $ts = lerArquivo('../data/ts.txt'); // Tempos de serviço
 
-// Simulação da fila
-$tempo_atual = 0;
-$fila = [];
-$atendimentos = [];
+// Inicializa variáveis
+$tempo_atual = 0; // Tempo atual no sistema (o tempo inicial será 0)
+$fila = [];        // Armazenará os tempos de chegada dos clientes
+$atendimentos = []; // Armazenará os tempos de atendimento
+$espera = [];       // Armazenará o tempo de espera de cada cliente
 
-foreach ($tc as $index => $tempo_chegada) {
+foreach ($tc as $index => $intervalo_chegada) {
+    // O primeiro cliente chega no tempo 0, ou podemos usar outro valor inicial
+    $tempo_chegada = ($index == 0) ? $intervalo_chegada : $tempo_chegada + $intervalo_chegada;
     $tempo_servico = isset($ts[$index]) ? $ts[$index] : 0;
 
+    // Se o cliente chega após o tempo atual, o sistema "espera" até a chegada
     if ($tempo_chegada > $tempo_atual) {
-        $tempo_atual = $tempo_chegada;  // Ajusta o tempo atual se o cliente chegar depois
+        $tempo_atual = $tempo_chegada;
     }
 
-    // O tempo de atendimento é o tempo atual + o tempo de serviço
-    $tempo_atendimento = $tempo_atual + $tempo_servico;
+    // O cliente começa o atendimento após o tempo atual
+    $inicio_atendimento = $tempo_atual;
 
-    // Armazenando os tempos de chegada e atendimento
+    // O tempo de atendimento é o tempo atual + o tempo de serviço
+    $tempo_atendimento = $inicio_atendimento + $tempo_servico;
+
+    // O tempo de espera é a diferença entre o tempo de atendimento e o tempo de chegada
+    $tempo_espera = $inicio_atendimento - $tempo_chegada;
+
+    // Armazenando os tempos
     $fila[] = $tempo_chegada;
     $atendimentos[] = $tempo_atendimento;
+    $espera[] = $tempo_espera;
 
-    // Atualizando o tempo atual com o tempo de atendimento
+    // Atualizando o tempo atual com o tempo de atendimento (próximo cliente só começa após a conclusão do anterior)
     $tempo_atual = $tempo_atendimento;
 }
 
 // Retorna os resultados como JSON para o frontend
-echo json_encode(['fila' => $fila, 'atendimentos' => $atendimentos]);
+echo json_encode([
+    'fila' => $fila, 
+    'atendimentos' => $atendimentos, 
+    'espera' => $espera
+]);
 
 ?>
