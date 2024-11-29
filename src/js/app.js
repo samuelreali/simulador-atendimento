@@ -1,7 +1,7 @@
 $(document).ready(function () {
     $("#simular").click(function () {
         $.getJSON("api/simulador.php", function (data) {
-            console.log(data);
+            console.log(data.espera);
 
             // Criar a tabela HTML com as colunas desejadas
             let html = "<h3>Resultados da Simulação</h3><table class='table table-bordered'>";
@@ -11,6 +11,8 @@ $(document).ready(function () {
                         <th>ID</th>
                         <th>Chegada</th>
                         <th>Atendimento Concluído</th>
+                        <th>TC (bruto)</th>
+                        <th>TS (bruto)</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -20,9 +22,11 @@ $(document).ready(function () {
             data.fila.forEach((item, index) => {
                 html += `
                     <tr>
-                        <td>#${index + 1}</td>
+                        <td>${index + 1}</td>
                         <td>${item}</td>
                         <td>${data.atendimentos[index]}</td>
+                        <td>${data.chegada_bruta[index]}</td> <!-- Exibe chegada bruta (intervalo) -->
+                        <td>${data.servico_bruto[index]}</td> <!-- Exibe tempo de serviço bruto -->
                     </tr>
                 `;
             });
