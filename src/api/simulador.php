@@ -12,6 +12,8 @@ $statusServidor = "Livre";
 $fila = [];
 $resultado = [];
 $chamadoAtual = null;
+$tempoServidorLivre = 0;
+$tempoTotal = 0;
 
 // Preenchendo os chamados com tempos acumulados de chegada
 $chamados = [];
@@ -25,13 +27,22 @@ foreach ($temposChegada as $indice => $tempoChegada) {
     ];
 }
 
-// Determinando o tempo total da simulação
-$tempoTotal = max(array_map(function($chamado) {
-    return $chamado['tempo_chegada'];
-}, $chamados)) + array_sum($temposServico);
+foreach ($chamados as $chamado) {
+    // Tempo em que o chamado começa a ser atendido:
+    $tempoInicio = max($chamado['tempo_chegada'], $tempoServidorLivre);
+    
+    // Calcula o tempo de término para este chamado
+    $tempoFinal = $tempoInicio + $chamado['tempo_servico'];
+    
+    // Atualiza o tempo em que o servidor estará livre
+    $tempoServidorLivre = $tempoFinal;
+
+    // O tempo total é o maior tempo de término de todos os chamados
+    $tempoTotal = max($tempoTotal, $tempoFinal);
+}
 
 // Loop principal usando range de tempo
-foreach (range(0, $tempoTotal) as $tempoSimulador) {
+foreach (range(1, $tempoTotal) as $tempoSimulador) {
     // Verificar novos chamados e adicioná-los à fila
     foreach ($chamados as $indice => $chamado) {
         if ($chamado['tempo_chegada'] == $tempoSimulador) {
@@ -43,6 +54,15 @@ foreach (range(0, $tempoTotal) as $tempoSimulador) {
     // Atualizar status do servidor
     if ($chamadoAtual) {
         if ($chamadoAtual['tempo_final'] == $tempoSimulador) {
+            // Registrar estado "Livre" quando o chamado atual é concluído
+            $resultado[] = [
+                'tempo_simulador' => $tempoSimulador,
+                'status_servidor' => "Chamado concluído!",
+                'fila' => implode(", ", array_map(function ($item) {
+                    $itemId = $item['id'] + 1;
+                    return "Chamado #{$itemId}";
+                }, $fila)),
+            ];
             $chamadoAtual = null; // Concluir chamado atual
             $statusServidor = "Livre";
         }
@@ -69,8 +89,7 @@ foreach (range(0, $tempoTotal) as $tempoSimulador) {
 }
 
 // Gerar tabela HTML
-echo "<table>";
-echo "<tr><th>Tempo do Simulador</th><th>Status do Servidor</th><th>Fila</th></tr>";
+echo "<tbody>";
 foreach ($resultado as $linha) {
     echo "<tr>";
     echo "<td>{$linha['tempo_simulador']}</td>";
@@ -78,5 +97,5 @@ foreach ($resultado as $linha) {
     echo "<td>" . ($linha['fila'] ?: "Vazia") . "</td>";
     echo "</tr>";
 }
-echo "</table>";
+echo "</tbody>";
 ?>
