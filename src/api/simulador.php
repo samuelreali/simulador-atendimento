@@ -1,7 +1,7 @@
 <?php
 function carregarDados($arquivo) {
     $linhas = file($arquivo, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-    return array_map('intval', array_slice($linhas, 1)); // Ignorar a linha de cabeçalho
+    return array_map('intval', $linhas);
 }
 
 $temposChegada = carregarDados('../data/tc.txt');
@@ -13,27 +13,26 @@ $fila = [];
 $resultado = [];
 $chamadoAtual = null;
 
-// Preenchendo as chamadas com tempos acumulados de chegada
-$chamadas = [];
-$tempoAtual = 4; // Primeiro chamado chega no tempo 4
-foreach ($temposChegada as $indice => $tempoRelativo) {
-    $chamadas[] = [
-        'tempo_chegada' => $tempoAtual,
+// Preenchendo as chamados com tempos acumulados de chegada
+$chamados = [];
+$tempoAtual = 0; // Primeiro chamado chega no tempo 4
+foreach ($temposChegada as $indice => $tempoChegada) {
+    $chamados[] = [
+        'tempo_chegada' => $tempoChegada,
         'tempo_servico' => $temposServico[$indice],
     ];
-    $tempoAtual += $tempoRelativo; // Próxima chegada acumulada
+    $tempoAtual += $tempoChegada; // Próxima chegada acumulada
 }
-
 // Simulação
-while (!empty($chamadas) || $chamadoAtual || !empty($fila)) {
+while (!empty($chamados) || $chamadoAtual || !empty($fila)) {
     // Verificar novos chamados e adicioná-los à fila
-    foreach ($chamadas as $indice => $chamado) {
+    foreach ($chamados as $indice => $chamado) {
+        $chamado['id'] = $indice;
         if ($chamado['tempo_chegada'] == $tempoSimulador) {
             $fila[] = $chamado; // Adicionar à fila
-            unset($chamadas[$indice]); // Remover da lista de chamados
+            unset($chamados[$indice]); // Remover da lista de chamados
         }
     }
-
     // Atualizar status do servidor
     if ($chamadoAtual) {
         if ($chamadoAtual['tempo_final'] == $tempoSimulador) {
@@ -45,9 +44,9 @@ while (!empty($chamadas) || $chamadoAtual || !empty($fila)) {
     // Processar próximo chamado na fila
     if (!$chamadoAtual && !empty($fila)) {
         $chamadoAtual = array_shift($fila); // Retirar o próximo da fila
-        $chamadoAtual['tempo_inicio'] = $tempoSimulador;
-        $chamadoAtual['tempo_final'] = $tempoSimulador + $chamadoAtual['tempo_servico'];
-        $statusServidor = "Ocupado";
+        $chamadoAtual['tempo_inicio'] = max($tempoSimulador, $chamadoAtual['tempo_chegada']);
+        $chamadoAtual['tempo_final'] = $chamadoAtual['tempo_inicio'] + $chamadoAtual['tempo_servico'];
+        $statusServidor = "Ocupado - Chamado " . $chamadoAtual['tempo_inicio'];
     }
 
     // Registrar estado atual
@@ -59,6 +58,7 @@ while (!empty($chamadas) || $chamadoAtual || !empty($fila)) {
         }, $fila)),
     ];
 
+    // Incrementar o tempo do simulador
     $tempoSimulador++;
 }
 
