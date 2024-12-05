@@ -1,4 +1,6 @@
-$(document).ready(function () {
+// passei pro index
+
+/* $(document).ready(function () {
     $("#iniciar-simulacao").click(function () {
         $.get("api/simulador.php", function (data) {
             // Transformar o retorno em HTML processável
@@ -13,9 +15,9 @@ $(document).ready(function () {
                 } else {
                     clearInterval(intervalo); // Interromper quando todas as linhas forem exibidas
                 }
-            }, 1000); // 1 segundo
+            }, 700); // um pouco menos de 1 segundo
         }).fail(function () {
             alert("Erro ao processar a simulação.");
         });
     });
-});
+}); */
