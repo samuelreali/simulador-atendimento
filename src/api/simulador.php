@@ -7,32 +7,39 @@ function carregarDados($arquivo) {
 $temposChegada = carregarDados('../data/tc.txt');
 $temposServico = carregarDados('../data/ts.txt');
 
-$tempoSimulador = 0;
+// Inicializando variáveis
 $statusServidor = "Livre";
 $fila = [];
 $resultado = [];
 $chamadoAtual = null;
 
-// Preenchendo as chamados com tempos acumulados de chegada
+// Preenchendo os chamados com tempos acumulados de chegada
 $chamados = [];
-$tempoAtual = 0; // Primeiro chamado chega no tempo 4
+$tempoAtual = 0;
 foreach ($temposChegada as $indice => $tempoChegada) {
+    $tempoAtual += $tempoChegada; // Tempo acumulado de chegada
     $chamados[] = [
-        'tempo_chegada' => $tempoChegada,
+        'tempo_chegada' => $tempoAtual,
         'tempo_servico' => $temposServico[$indice],
+        'id' => $indice
     ];
-    $tempoAtual += $tempoChegada; // Próxima chegada acumulada
 }
-// Simulação
-while (!empty($chamados) || $chamadoAtual || !empty($fila)) {
+
+// Determinando o tempo total da simulação
+$tempoTotal = max(array_map(function($chamado) {
+    return $chamado['tempo_chegada'];
+}, $chamados)) + array_sum($temposServico);
+
+// Loop principal usando range de tempo
+foreach (range(0, $tempoTotal) as $tempoSimulador) {
     // Verificar novos chamados e adicioná-los à fila
     foreach ($chamados as $indice => $chamado) {
-        $chamado['id'] = $indice;
         if ($chamado['tempo_chegada'] == $tempoSimulador) {
             $fila[] = $chamado; // Adicionar à fila
             unset($chamados[$indice]); // Remover da lista de chamados
         }
     }
+
     // Atualizar status do servidor
     if ($chamadoAtual) {
         if ($chamadoAtual['tempo_final'] == $tempoSimulador) {
@@ -46,7 +53,8 @@ while (!empty($chamados) || $chamadoAtual || !empty($fila)) {
         $chamadoAtual = array_shift($fila); // Retirar o próximo da fila
         $chamadoAtual['tempo_inicio'] = max($tempoSimulador, $chamadoAtual['tempo_chegada']);
         $chamadoAtual['tempo_final'] = $chamadoAtual['tempo_inicio'] + $chamadoAtual['tempo_servico'];
-        $statusServidor = "Ocupado - Chamado " . $chamadoAtual['tempo_inicio'];
+        $chamadoId = $chamadoAtual['id'] + 1;
+        $statusServidor = "Ocupado - Chamado #{$chamadoId}";
     }
 
     // Registrar estado atual
@@ -54,12 +62,10 @@ while (!empty($chamados) || $chamadoAtual || !empty($fila)) {
         'tempo_simulador' => $tempoSimulador,
         'status_servidor' => $statusServidor,
         'fila' => implode(", ", array_map(function ($item) {
-            return "T{$item['tempo_chegada']}";
+            $itemId = $item['id'] + 1;
+            return "Chamado #{$itemId}";
         }, $fila)),
     ];
-
-    // Incrementar o tempo do simulador
-    $tempoSimulador++;
 }
 
 // Gerar tabela HTML
@@ -73,3 +79,4 @@ foreach ($resultado as $linha) {
     echo "</tr>";
 }
 echo "</table>";
+?>
