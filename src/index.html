@@ -46,8 +46,13 @@
             $.get("api/simulador.php", function (data) {
                 // Transformar o retorno em HTML processável
                 const tabela = $("<div>").html(data).find("tbody tr"); // Obter linhas do corpo da tabela
+
                 const metrica1 = data.match(/<span id='tempo-total'>(.*?)<\/span>/);
                 const conteudoMetrica1 = metrica1 ? metrica1[1] : null;
+
+                const metrica2 = data.match(/<span id='media-espera'>(.*?)<\/span>/);
+                const conteudoMetrica2 = metrica2 ? metrica2[1] : null;
+
                 let index = 0;
 
                 // Função para inserir linhas na tabela com intervalo de 1 segundo
@@ -60,8 +65,9 @@
                         $('#tempo-total').html(index);
                         $('#metricas').removeClass('d-none');
                         $('#tempo-total').html(conteudoMetrica1);
+                        $('#espera-fila').html(conteudoMetrica2);
                     }
-                }, 700); // 700 = um pouco menos de 1 segundo
+                }, 0); // 700 = um pouco menos de 1 segundo
             }).fail(function () {
                 alert("Erro ao processar a simulação.");
             });

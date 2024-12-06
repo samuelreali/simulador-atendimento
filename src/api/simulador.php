@@ -27,6 +27,7 @@ foreach ($temposChegada as $indice => $tempoChegada) {
     ];
 }
 
+$tempoEspera = 0;
 foreach ($chamados as $chamado) {
     // Tempo em que o chamado começa a ser atendido:
     $tempoInicio = max($chamado['tempo_chegada'], $tempoServidorLivre);
@@ -39,7 +40,11 @@ foreach ($chamados as $chamado) {
 
     // O tempo total é o maior tempo de término de todos os chamados
     $tempoTotal = max($tempoTotal, $tempoFinal);
+
+    $tempoEspera += $tempoInicio - $chamado['tempo_chegada'];
 }
+
+$mediaTempoEspera = $tempoEspera / count($chamados);
 
 // Loop principal usando range de tempo
 foreach (range(1, $tempoTotal) as $tempoSimulador) {
@@ -98,6 +103,6 @@ foreach ($resultado as $linha) {
     echo "</tr>";
 }
 echo "</tbody>";
-echo "<span>TESTANDO!!</span>";
 echo "<span id='tempo-total'>{$tempoTotal}</span>";
+echo "<span id='media-espera'>{$mediaTempoEspera}</span>";
 ?>
