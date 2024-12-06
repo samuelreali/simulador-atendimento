@@ -16,6 +16,9 @@
     <div class="container">
         <h1>Simulador de Chamados</h1>
         <button class="mb-3 btn btn-dark" id="iniciar-simulacao">Iniciar Simulação</button>
+        <button class="mb-3 btn btn-danger" id="cenario-1">cenario 1</button>
+        <button class="mb-3 btn btn-success" id="cenario-2">cenario 2</button>
+        <button class="mb-3 btn btn-info" id="cenario-3">cenario 3</button>
         <div id="resultado" class="overflow-auto" style="max-height: 500px;">
             <table id="tabela-simulacao" class="table table-stripe">
                 <thead>
@@ -31,8 +34,8 @@
             </table>
         </div>
         <div id="metricas" class="d-none mt-3">
-            <span>Tempo total para atender todas demandas: <span id="tempo-total"></span></span>
-            <span>Tempo médio de espera na fila: <span id="espera-fila"></span></span>
+            <h5>Tempo total para atender todas demandas: <span id="tempo-total"></span></h5>
+            <h5>Tempo médio de espera na fila: <span id="espera-fila"></span></h5>
         </div>
     </div>
 </body>
@@ -43,6 +46,8 @@
             $.get("api/simulador.php", function (data) {
                 // Transformar o retorno em HTML processável
                 const tabela = $("<div>").html(data).find("tbody tr"); // Obter linhas do corpo da tabela
+                const metrica1 = data.match(/<span id='tempo-total'>(.*?)<\/span>/);
+                const conteudoMetrica1 = metrica1 ? metrica1[1] : null;
                 let index = 0;
 
                 // Função para inserir linhas na tabela com intervalo de 1 segundo
@@ -54,6 +59,7 @@
                         clearInterval(intervalo); // Interromper quando todas as linhas forem exibidas
                         $('#tempo-total').html(index);
                         $('#metricas').removeClass('d-none');
+                        $('#tempo-total').html(conteudoMetrica1);
                     }
                 }, 700); // 700 = um pouco menos de 1 segundo
             }).fail(function () {

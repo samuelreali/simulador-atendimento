@@ -94,9 +94,10 @@ foreach ($resultado as $linha) {
     echo "<tr>";
     echo "<td>{$linha['tempo_simulador']}</td>";
     echo $linha['status_servidor'] == 'Chamado concluído!' ? "<td class='bg-success-subtle text-success-emphasis'>{$linha['status_servidor']}</td>" : "<td>{$linha['status_servidor']}</td>";
-    echo "<td>" . ($linha['fila'] ?: "Vazia") . "</td>";
+    echo "<td style='max-width: 250px'>" . ($linha['fila'] ?: "Vazia") . "</td>";
     echo "</tr>";
 }
 echo "</tbody>";
-echo "TESTE!!";
+echo "<span>TESTANDO!!</span>";
+echo "<span id='tempo-total'>{$tempoTotal}</span>";
 ?>
