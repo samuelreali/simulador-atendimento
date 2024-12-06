@@ -36,6 +36,7 @@
         <div id="metricas" class="d-none mt-3">
             <h5>Tempo total para atender todas demandas: <span id="tempo-total"></span></h5>
             <h5>Tempo médio de espera na fila: <span id="espera-fila"></span></h5>
+            <h5>Percentual de tempo com mais de 5 chamados na fila: <span id="chamados-fila"></span></h5>
         </div>
     </div>
 </body>
@@ -53,6 +54,9 @@
                 const metrica2 = data.match(/<span id='media-espera'>(.*?)<\/span>/);
                 const conteudoMetrica2 = metrica2 ? metrica2[1] : null;
 
+                const metrica3 = data.match(/<span id='chamado-fila'>(.*?)<\/span>/);
+                    const conteudoMetrica3 = metrica3 ? metrica3[1] : null;
+
                 let index = 0;
 
                 // Função para inserir linhas na tabela com intervalo de 1 segundo
@@ -66,6 +70,7 @@
                         $('#metricas').removeClass('d-none');
                         $('#tempo-total').html(conteudoMetrica1);
                         $('#espera-fila').html(conteudoMetrica2);
+                        $('#chamados-fila').html(conteudoMetrica3);
                     }
                 }, 0); // 700 = um pouco menos de 1 segundo
             }).fail(function () {

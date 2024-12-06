@@ -45,6 +45,7 @@ foreach ($chamados as $chamado) {
 }
 
 $mediaTempoEspera = $tempoEspera / count($chamados);
+$somaFila = 0;
 
 // Loop principal usando range de tempo
 foreach (range(1, $tempoTotal) as $tempoSimulador) {
@@ -55,6 +56,8 @@ foreach (range(1, $tempoTotal) as $tempoSimulador) {
             unset($chamados[$indice]); // Remover da lista de chamados
         }
     }
+
+    $somaFila += count($fila) > 5 ? 1 : 0;
 
     // Atualizar status do servidor
     if ($chamadoAtual) {
@@ -73,6 +76,7 @@ foreach (range(1, $tempoTotal) as $tempoSimulador) {
         }
     }
 
+    
     // Processar próximo chamado na fila
     if (!$chamadoAtual && !empty($fila)) {
         $chamadoAtual = array_shift($fila); // Retirar o próximo da fila
@@ -82,6 +86,7 @@ foreach (range(1, $tempoTotal) as $tempoSimulador) {
         $statusServidor = "Ocupado - Chamado #{$chamadoId}";
     }
 
+    
     // Registrar estado atual
     $resultado[] = [
         'tempo_simulador' => $tempoSimulador,
@@ -92,6 +97,9 @@ foreach (range(1, $tempoTotal) as $tempoSimulador) {
         }, $fila)),
     ];
 }
+
+$mediaFila = ($somaFila / $tempoTotal) * 100;
+$mediaFila = round($mediaFila)."%";
 
 // Gerar tabela HTML
 echo "<tbody>";
@@ -105,4 +113,5 @@ foreach ($resultado as $linha) {
 echo "</tbody>";
 echo "<span id='tempo-total'>{$tempoTotal}</span>";
 echo "<span id='media-espera'>{$mediaTempoEspera}</span>";
+echo "<span id='chamado-fila'>{$mediaFila}</span>";
 ?>
