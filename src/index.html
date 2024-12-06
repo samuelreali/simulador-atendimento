@@ -16,15 +16,16 @@
     <div class="container">
         <h1>Simulador de Chamados</h1>
         <button class="mb-3 btn btn-dark" id="iniciar-simulacao">Iniciar Simulação</button>
-        <button class="mb-3 btn btn-danger" id="cenario-2">cenario 2</button>
-        <button class="mb-3 btn btn-success" id="cenario-3">cenario 3</button>
-        <button class="mb-3 btn btn-info" id="cenario-4">cenario 4</button>
+        <button class="mb-3 btn btn-light" id="cenario-2">Cenário 2</button>
+        <button class="mb-3 btn btn-light" id="cenario-3">Cenário 3</button>
+        <button class="mb-3 btn btn-light" id="cenario-4">Cenário 4</button>
+        <h4 id="info-cenario"></h4>
         <div id="resultado" class="overflow-auto" style="max-height: 500px;">
             <table id="tabela-simulacao" class="table table-stripe">
                 <thead>
                     <tr>
                         <th>Tempo do Simulador</th>
-                        <th>Status do Servidor</th>
+                        <th>Status do(s) Servidor(es)</th>
                         <th>Fila</th>
                     </tr>
                 </thead>
@@ -44,6 +45,11 @@
 <script>
     $(document).ready(function () {
         $("#iniciar-simulacao").click(function () {
+            $('#info-cenario').text('Cenário padrão - 1 servidor júnior.');
+            $('#tabela-simulacao tbody').children().remove();
+            $('#metricas #tempo-total').text('Calculando...');
+            $('#metricas #espera-fila').text('Calculando...');
+            $('#metricas #chamados-fila').text('Calculando...');
             $.get("api/simulador.php", function (data) {
                 // Transformar o retorno em HTML processável
                 const tabela = $("<div>").html(data).find("tbody tr"); // Obter linhas do corpo da tabela
@@ -78,8 +84,93 @@
             });
         });
 
-        $("#cenario-2").click(function () {
+        $("#cenario-2").click(function (e) {
+            $('#info-cenario').text('Cenário 2 - Um servidor treinado (pleno).');
+            $('#tabela-simulacao tbody').children().remove();
+            $('#metricas #tempo-total').text('Calculando...');
+            $('#metricas #espera-fila').text('Calculando...');
+            $('#metricas #chamados-fila').text('Calculando...');
             $.get("api/cenario2.php", function (data) {
+                // Transformar o retorno em HTML processável
+                const tabela = $("<div>").html(data).find("tbody tr"); // Obter linhas do corpo da tabela
+
+                const metrica1 = data.match(/<span id='tempo-total'>(.*?)<\/span>/);
+                const conteudoMetrica1 = metrica1 ? metrica1[1] : null;
+
+                const metrica2 = data.match(/<span id='media-espera'>(.*?)<\/span>/);
+                const conteudoMetrica2 = metrica2 ? metrica2[1] : null;
+
+                const metrica3 = data.match(/<span id='chamado-fila'>(.*?)<\/span>/);
+                    const conteudoMetrica3 = metrica3 ? metrica3[1] : null;
+
+                let index = 0;
+
+                // Função para inserir linhas na tabela com intervalo de 1 segundo
+                const intervalo = setInterval(function () {
+                    if (index < tabela.length) {
+                        $("#tabela-simulacao tbody").append(tabela[index]); // Adicionar linha ao corpo da tabela
+                        index++;
+                    } else {
+                        clearInterval(intervalo); // Interromper quando todas as linhas forem exibidas
+                        $('#tempo-total').html(index);
+                        $('#metricas').removeClass('d-none');
+                        $('#tempo-total').html(conteudoMetrica1);
+                        $('#espera-fila').html(conteudoMetrica2);
+                        $('#chamados-fila').html(conteudoMetrica3);
+                    }
+                }, 0); // 700 = um pouco menos de 1 segundo
+            }).fail(function () {
+                alert("Erro ao processar a simulação.");
+            });
+        });
+
+        $("#cenario-3").click(function () {
+            $('#info-cenario').text('Cenário 3 - Dois servidores júnior.');
+            $('#tabela-simulacao tbody').children().remove();
+            $('#metricas #tempo-total').text('Calculando...');
+            $('#metricas #espera-fila').text('Calculando...');
+            $('#metricas #chamados-fila').text('Calculando...');
+            $.get("api/cenario3.php", function (data) {
+                // Transformar o retorno em HTML processável
+                const tabela = $("<div>").html(data).find("tbody tr"); // Obter linhas do corpo da tabela
+
+                const metrica1 = data.match(/<span id='tempo-total'>(.*?)<\/span>/);
+                const conteudoMetrica1 = metrica1 ? metrica1[1] : null;
+
+                const metrica2 = data.match(/<span id='media-espera'>(.*?)<\/span>/);
+                const conteudoMetrica2 = metrica2 ? metrica2[1] : null;
+
+                const metrica3 = data.match(/<span id='chamado-fila'>(.*?)<\/span>/);
+                    const conteudoMetrica3 = metrica3 ? metrica3[1] : null;
+
+                let index = 0;
+
+                // Função para inserir linhas na tabela com intervalo de 1 segundo
+                const intervalo = setInterval(function () {
+                    if (index < tabela.length) {
+                        $("#tabela-simulacao tbody").append(tabela[index]); // Adicionar linha ao corpo da tabela
+                        index++;
+                    } else {
+                        clearInterval(intervalo); // Interromper quando todas as linhas forem exibidas
+                        $('#tempo-total').html(index);
+                        $('#metricas').removeClass('d-none');
+                        $('#tempo-total').html(conteudoMetrica1);
+                        $('#espera-fila').html(conteudoMetrica2);
+                        $('#chamados-fila').html(conteudoMetrica3);
+                    }
+                }, 0); // 700 = um pouco menos de 1 segundo
+            }).fail(function () {
+                alert("Erro ao processar a simulação.");
+            });
+        });
+
+        $("#cenario-4").click(function () {
+            $('#info-cenario').text('Cenário 4 - Dois servidores treinados (pleno).');
+            $('#tabela-simulacao tbody').children().remove();
+            $('#metricas #tempo-total').text('Calculando...');
+            $('#metricas #espera-fila').text('Calculando...');
+            $('#metricas #chamados-fila').text('Calculando...');
+            $.get("api/cenario4.php", function (data) {
                 // Transformar o retorno em HTML processável
                 const tabela = $("<div>").html(data).find("tbody tr"); // Obter linhas do corpo da tabela
 

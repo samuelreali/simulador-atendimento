@@ -6,14 +6,14 @@ function carregarDados($arquivo) {
 
 $temposChegada = carregarDados('../data/tc.txt');
 $temposServico = carregarDados('../data/ts.txt');
+$temposServico = array_map(fn($tempo) => intval($tempo / 2), $temposServico);
 
 // Inicializando variáveis
-$statusServidores = ["Livre", "Livre"];
+$statusServidor = "Livre";
 $fila = [];
 $resultado = [];
-$servidores = [null, null]; // Representa os dois servidores
-$tempoServidoresLivres = [0, 0]; // Tempo em que cada servidor estará livre
-$mensagensConcluidos = [null, null]; // Mensagens temporárias para servidores
+$chamadoAtual = null;
+$tempoServidorLivre = 0;
 $tempoTotal = 0;
 
 // Preenchendo os chamados com tempos acumulados de chegada
@@ -30,68 +30,84 @@ foreach ($temposChegada as $indice => $tempoChegada) {
 
 $tempoEspera = 0;
 foreach ($chamados as $chamado) {
-    $tempoInicio = max($chamado['tempo_chegada'], min($tempoServidoresLivres));
+    // Tempo em que o chamado começa a ser atendido:
+    $tempoInicio = max($chamado['tempo_chegada'], $tempoServidorLivre);
+    
+    // Calcula o tempo de término para este chamado
     $tempoFinal = $tempoInicio + $chamado['tempo_servico'];
-    $servidorLivre = array_search(min($tempoServidoresLivres), $tempoServidoresLivres);
-    $tempoServidoresLivres[$servidorLivre] = $tempoFinal;
+    
+    // Atualiza o tempo em que o servidor estará livre
+    $tempoServidorLivre = $tempoFinal;
+
+    // O tempo total é o maior tempo de término de todos os chamados
     $tempoTotal = max($tempoTotal, $tempoFinal);
+
     $tempoEspera += $tempoInicio - $chamado['tempo_chegada'];
 }
 
 $mediaTempoEspera = $tempoEspera / count($chamados);
 $somaFila = 0;
 
+// Loop principal usando range de tempo
 foreach (range(1, $tempoTotal) as $tempoSimulador) {
+    // Verificar novos chamados e adicioná-los à fila
     foreach ($chamados as $indice => $chamado) {
         if ($chamado['tempo_chegada'] == $tempoSimulador) {
-            $fila[] = $chamado;
-            unset($chamados[$indice]);
+            $fila[] = $chamado; // Adicionar à fila
+            unset($chamados[$indice]); // Remover da lista de chamados
         }
     }
 
     $somaFila += count($fila) > 5 ? 1 : 0;
 
-    foreach ($servidores as $index => &$servidor) {
-        // Exibe mensagem de "Chamado concluído!" se aplicável
-        /* if ($mensagensConcluidos[$index]) {
+    // Atualizar status do servidor
+    if ($chamadoAtual) {
+        if ($chamadoAtual['tempo_final'] == $tempoSimulador) {
+            // Registrar estado "Livre" quando o chamado atual é concluído
             $resultado[] = [
                 'tempo_simulador' => $tempoSimulador,
-                'status_servidor' => $mensagensConcluidos[$index],
-                'fila' => implode(", ", array_map(fn($item) => "Chamado #".($item['id']+1), $fila)),
+                'status_servidor' => "Chamado concluído!",
+                'fila' => implode(", ", array_map(function ($item) {
+                    $itemId = $item['id'] + 1;
+                    return "Chamado #{$itemId}";
+                }, $fila)),
             ];
-            $mensagensConcluidos[$index] = null;
-        } */
-
-        // Finaliza chamado se o tempo for igual ao término
-        if ($servidor && $servidor['tempo_final'] == $tempoSimulador) {
-            $mensagensConcluidos[$index] = "Servidor #".($index+1).": Chamado concluído!";
-            $servidor = null;
-            $statusServidores[$index] = "Livre";
-        }
-
-        // Processa novo chamado se o servidor estiver livre
-        if (!$servidor && !empty($fila)) {
-            $servidor = array_shift($fila);
-            $servidor['tempo_inicio'] = max($tempoSimulador, $servidor['tempo_chegada']);
-            $servidor['tempo_final'] = $servidor['tempo_inicio'] + $servidor['tempo_servico'];
-            $statusServidores[$index] = "Ocupado - Chamado #".($servidor['id']+1);
+            $chamadoAtual = null; // Concluir chamado atual
+            $statusServidor = "Livre";
         }
     }
 
+    
+    // Processar próximo chamado na fila
+    if (!$chamadoAtual && !empty($fila)) {
+        $chamadoAtual = array_shift($fila); // Retirar o próximo da fila
+        $chamadoAtual['tempo_inicio'] = max($tempoSimulador, $chamadoAtual['tempo_chegada']);
+        $chamadoAtual['tempo_final'] = $chamadoAtual['tempo_inicio'] + $chamadoAtual['tempo_servico'];
+        $chamadoId = $chamadoAtual['id'] + 1;
+        $statusServidor = "Ocupado - Chamado #{$chamadoId}";
+    }
+
+    
+    // Registrar estado atual
     $resultado[] = [
         'tempo_simulador' => $tempoSimulador,
-        'status_servidores' => implode(", ", $statusServidores),
-        'fila' => implode(", ", array_map(fn($item) => "Chamado #".($item['id']+1), $fila)),
+        'status_servidor' => $statusServidor,
+        'fila' => implode(", ", array_map(function ($item) {
+            $itemId = $item['id'] + 1;
+            return "Chamado #{$itemId}";
+        }, $fila)),
     ];
 }
 
-$mediaFila = round(($somaFila / $tempoTotal) * 100)."%";
+$mediaFila = ($somaFila / $tempoTotal) * 100;
+$mediaFila = round($mediaFila)."%";
 
+// Gerar tabela HTML
 echo "<tbody>";
 foreach ($resultado as $linha) {
     echo "<tr>";
     echo "<td>{$linha['tempo_simulador']}</td>";
-    echo  "<td>{$linha['status_servidores']}</td>";
+    echo $linha['status_servidor'] == 'Chamado concluído!' ? "<td class='bg-success-subtle text-success-emphasis'>{$linha['status_servidor']}</td>" : "<td>{$linha['status_servidor']}</td>";
     echo "<td style='max-width: 250px'>" . ($linha['fila'] ?: "Vazia") . "</td>";
     echo "</tr>";
 }
